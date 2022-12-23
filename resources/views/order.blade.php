@@ -33,15 +33,16 @@
                                     <div class="card text-left mb-3">
                                         <div class="card-body bg-dark">
                                             <h4 class="card-title">{{ $menu->nama }}</h4>
-                                            <h3 class="rekomendasi"><?php
+                                            <h3 id="rekomendasi"><?php
                                             if ($menu->rekomendasi == 1) {
                                                 echo 'Recommended';
                                             } else {
                                                 echo '-';
                                             }
                                             ?></h3>
-                                            <h3 class="harga">Rp.{{ number_format($menu->harga, 2, ',', '.') }}</h3>
-                                            <input type="number"
+                                            <h3 id="harga" value="{{ $menu->harga }}">
+                                                Rp.{{ number_format($menu->harga, 2, ',', '.') }}</h3>
+                                            <input type="number" id="quantity"
                                                 class="form-control @error('quantity') is-invalid @enderror" name="quantity"
                                                 rows="8" value="{{ old('quantity') }}" min="0">
                                             @error('quantity')
@@ -117,27 +118,21 @@
 @push('js_after')
     <script>
         function hitungHarga() {
-            var total = document.getElementById("totalHarga").innerHTML;
-            var jml = document.querySelectorAll("quantity");
-            var varHarga = document.querySelectorAll("harga");
-            var rekomen = document.querySelectorAll("rekomendasi");
-            var hasil = 0;
+            let total = document.getElementById("totalHarga").innerHTML;
+            let jml = document.querySelectorAll("#quantity");
+            let varHarga = document.querySelectorAll("#harga");
+            let rekomen = document.querySelectorAll("#rekomendasi");
+            let hasil = 0;
 
             for (var i = 0; i < jml.length; i++) {
                 if (rekomen[i].innerHTML == "-") {
-                    hasil += jml[i].value * varHarga[i].innerHTML;
+                    hasil += (+jml[i].value) * (+varHarga[i].value);
                 } else {
-                    hasil += (jml[i].value * varHarga[i].innerHTML) - ((jml[i].value * varHarga[i].innerHTML) * 0.1);
+                    hasil += (+jml[i].value * +varHarga[i].value) - ((+jml[i].value * (+varHarga[i].value)) * 0.1);
                 }
             }
-            document.getElementById("totalHarga").innerHTML = 'Total yang harus dibayar : ' + 'Rp.' + (hasil + (hasil *
-                0.11)) + ',00';
+            total = (hasil + (hasil * 0.11));
+            document.getElementById("totalHarga").innerHTML = 'Total yang harus dibayar : ' + 'Rp.' + total + ',00';
         }
-
-        $(document).ready(function() {
-            $("input").change(function() {
-                hitungHarga();
-            });
-        });
     </script>
 @endpush
