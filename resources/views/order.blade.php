@@ -40,8 +40,8 @@
                                                 echo '-';
                                             }
                                             ?></h3>
-                                            <h3 id="harga" value="{{ $menu->harga }}">
-                                                Rp.{{ number_format($menu->harga, 2, ',', '.') }}</h3>
+                                            <h3 id="harga">
+                                                {{ $menu->harga }}</h3>
                                             <input type="number" id="quantity"
                                                 class="form-control @error('quantity') is-invalid @enderror" name="quantity"
                                                 rows="8" value="{{ old('quantity') }}" min="0">
@@ -53,44 +53,7 @@
                                 @empty
                                     <option value="">No Data Yet.</option>
                                 @endforelse
-                                @error('menu_id')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
                             </div>
-                            {{-- <div class="col-md-6 form-group">
-                                <label for="menu_id">MENU : </label>
-                                <select name="menu_id" id="menu_id" class="bg-dark text-light w-25 form-control" required>
-                                    @forelse ($menus as $menu)
-                                        <?php
-                                        $varHarga = $menu->harga;
-                                        ?>
-
-                                        <div class="card text-left">
-                                            <div class="card-body bg-dark">
-                                                <h4 class="card-title text-dark">{{ $menu->nama }}</h4>
-                                                <p class="card-text">{{ $menu->harga }}</p>
-                                            </div>
-                                        </div>
-                                        <option value="{{ $menu->id }}"
-                                            class="form-control @error('menu_id') is-invalid @enderror" name="menu_id">
-                                            {{ $menu->nama }}
-                                        </option>
-                                    @empty
-                                        <option value="">No Data Yet.</option>
-                                    @endforelse
-                                </select>
-                                @error('menu_id')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
-                            </div> --}}
-                            {{-- <div class="col-md-6 form-group mt-3 mt-md-0">
-                                <input type="text" class="form-control @error('nama') is-invalid @enderror"
-                                    name="nama" id="nama" placeholder="Nama Menu" value="{{ old('nama') }}"
-                                    required>
-                                @error('nama')
-                                    <div class="text-danger">{{ $message }}</div>
-                                @enderror
-                            </div> --}}
 
                             <select name="status" id="status" class="form-control bg-dark text-white">
                                 <option value="Selesai">Selesai</option>
@@ -98,7 +61,9 @@
                             </select>
 
                         </div>
-                        <h3 id="totalHarga" name="totalHarga">-</h3>
+                        <h3 id="totalHarga" name="totalHarga"></h3>
+                        <h3 id="totalPPN" name="totalPPN"></h3>
+                        <h3 id="totalDiskon" name="totalDiskon"></h3>
                         <div class="my-3">
                             <div class="loading">Loading</div>
                             <div class="error-message"></div>
@@ -118,21 +83,36 @@
 @push('js_after')
     <script>
         function hitungHarga() {
-            let total = document.getElementById("totalHarga").innerHTML;
-            let jml = document.querySelectorAll("#quantity");
-            let varHarga = document.querySelectorAll("#harga");
-            let rekomen = document.querySelectorAll("#rekomendasi");
+            let total = document.getElementById("totalHarga").value;
+            const jml = document.querySelectorAll("#quantity");
+            const varHarga = document.querySelectorAll("#harga");
+            const rekomen = document.querySelectorAll("#rekomendasi");
             let hasil = 0;
+            let ppn = 0;
+            let diskon = 0;
+            const rupiah = (number) => {
+                return new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR"
+                }).format(number);
+            }
 
             for (var i = 0; i < jml.length; i++) {
                 if (rekomen[i].innerHTML == "-") {
-                    hasil += (+jml[i].value) * (+varHarga[i].value);
+                    hasil += jml[i].value * varHarga[i].innerHTML;
                 } else {
-                    hasil += (+jml[i].value * +varHarga[i].value) - ((+jml[i].value * (+varHarga[i].value)) * 0.1);
+                    hasil += (jml[i].value * varHarga[i].innerHTML) - ((jml[i].value * varHarga[i].innerHTML) * 0.1);
+                    diskon += (jml[i].value * varHarga[i].innerHTML) * 0.1;
                 }
             }
             total = (hasil + (hasil * 0.11));
-            document.getElementById("totalHarga").innerHTML = 'Total yang harus dibayar : ' + 'Rp.' + total + ',00';
+            ppn = hasil * 0.11;
+            document.getElementById("totalHarga").innerHTML = 'Total yang harus dibayar : ' + rupiah(Math.round(
+                total));
+            document.getElementById("totalPPN").innerHTML = 'Total PPN : ' + rupiah(Math.round(
+                ppn));
+            document.getElementById("totalDiskon").innerHTML = 'Total Diskon : ' + rupiah(Math.round(
+                diskon));
         }
     </script>
 @endpush
